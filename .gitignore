@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Docker volumes
+postgres_data/
+
+# Coverage
+coverage/
+
+# TypeScript
+*.tsbuildinfo
+
+# Vite
+frontend/.vite/
+
+# Project docs (local only)
+_docs/
+_refer_docs/
+
+# Claude Code
+.claude/
+
+# GitHub workflows (not needed yet)
+.github/
+
+# Temp files
+/tmp/
