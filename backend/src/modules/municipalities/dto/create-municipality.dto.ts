@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString, Matches } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsString, Matches, Min } from 'class-validator';
 
 export class CreateMunicipalityDto {
   @IsString()
@@ -44,4 +44,9 @@ export class UpdateMunicipalityDto {
   @IsOptional()
   @IsString()
   status?: 'active' | 'inactive' | 'suspended';
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  cuotaBaseLegal?: number;
 }

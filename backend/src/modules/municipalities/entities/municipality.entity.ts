@@ -39,6 +39,9 @@ export class Municipality {
   @Column({ type: 'varchar', length: 50, default: 'America/Mexico_City' })
   timezone: string;
 
+  @Column({ name: 'cuota_base_legal', type: 'numeric', precision: 12, scale: 2, nullable: true })
+  cuotaBaseLegal: number | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 

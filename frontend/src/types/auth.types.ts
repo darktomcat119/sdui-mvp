@@ -4,6 +4,7 @@ export const UserRole = {
   TREASURY_OPERATOR: 'treasury_operator',
   LEGAL_ANALYST: 'legal_analyst',
   COMPTROLLER_AUDITOR: 'comptroller_auditor',
+  VALIDADOR_TECNICO: 'validador_tecnico',
 } as const;
 
 export type UserRole = (typeof UserRole)[keyof typeof UserRole];

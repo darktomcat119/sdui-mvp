@@ -14,17 +14,33 @@ interface RouteConfig {
 
 const ROUTE_CONFIG: Record<string, RouteConfig> = {
   '/dashboard': { titleKey: 'route.dashboard.title', subtitleKey: 'route.dashboard.subtitle', icon: 'dashboard' },
+  '/taxpayers': { titleKey: 'route.taxpayers.title', subtitleKey: 'route.taxpayers.subtitle', icon: 'users' },
+  '/taxpayers/new': { titleKey: 'route.taxpayersNew.title', subtitleKey: 'route.taxpayersNew.subtitle', icon: 'users' },
+  '/configuration': { titleKey: 'route.configuration.title', subtitleKey: 'route.configuration.subtitle', icon: 'settings' },
+  '/determinations': { titleKey: 'route.determinations.title', subtitleKey: 'route.determinations.subtitle', icon: 'play' },
+  '/exceptions': { titleKey: 'route.exceptions.title', subtitleKey: 'route.exceptions.subtitle', icon: 'filter' },
+  '/reports': { titleKey: 'route.reports.title', subtitleKey: 'route.reports.subtitle', icon: 'download' },
+  '/central-config': { titleKey: 'route.centralConfig.title', subtitleKey: 'route.centralConfig.subtitle', icon: 'settings' },
   '/users': { titleKey: 'route.users.title', subtitleKey: 'route.users.subtitle', icon: 'users' },
   '/users/new': { titleKey: 'route.usersNew.title', subtitleKey: 'route.usersNew.subtitle', icon: 'users' },
   '/audit-log': { titleKey: 'route.auditLog.title', subtitleKey: 'route.auditLog.subtitle', icon: 'audit' },
   '/profile': { titleKey: 'route.profile.title', subtitleKey: 'route.profile.subtitle', icon: 'user' },
 };
 
+// Match dynamic routes like /determinations/:id
+function getRouteConfig(pathname: string): RouteConfig | undefined {
+  if (ROUTE_CONFIG[pathname]) return ROUTE_CONFIG[pathname];
+  if (/^\/determinations\/[^/]+$/.test(pathname)) {
+    return { titleKey: 'route.determinationDetail.title', subtitleKey: 'route.determinationDetail.subtitle', icon: 'play' };
+  }
+  return undefined;
+}
+
 export function AppLayout() {
   const { pathname } = useLocation();
   const { t } = useTranslation();
   const [collapsed, setCollapsed] = useState(() => window.innerWidth < 768);
-  const config = ROUTE_CONFIG[pathname];
+  const config = getRouteConfig(pathname);
 
   return (
     <div className="min-h-screen">

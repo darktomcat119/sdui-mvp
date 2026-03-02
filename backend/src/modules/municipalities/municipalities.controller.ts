@@ -72,13 +72,20 @@ export class MunicipalitiesController {
   }
 
   @Patch(':id')
-  @Roles(UserRole.SYSTEM_ADMIN)
+  @Roles(UserRole.SYSTEM_ADMIN, UserRole.MUNICIPAL_ADMIN)
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateMunicipalityDto,
     @CurrentUser() currentUser: RequestUser,
     @Req() req: Request,
   ) {
+    // Municipal admins can only update their own municipality
+    if (
+      currentUser.role === UserRole.MUNICIPAL_ADMIN &&
+      id !== currentUser.municipalityId
+    ) {
+      throw new NotFoundException('Municipality not found');
+    }
     const result = await this.municipalitiesService.update(
       id,
       dto,

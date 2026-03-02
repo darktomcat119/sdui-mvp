@@ -9,6 +9,13 @@ import { MunicipalitiesModule } from './modules/municipalities/municipalities.mo
 import { AuditModule } from './modules/audit/audit.module';
 import { HealthModule } from './modules/health/health.module';
 import { UploadsModule } from './modules/uploads/uploads.module';
+import { ScianModule } from './modules/scian/scian.module';
+import { ZonesModule } from './modules/zones/zones.module';
+import { WeightsModule } from './modules/weights/weights.module';
+import { TaxpayersModule } from './modules/taxpayers/taxpayers.module';
+import { DeterminationsModule } from './modules/determinations/determinations.module';
+import { ReportsModule } from './modules/reports/reports.module';
+import { CentralConfigModule } from './modules/central-config/central-config.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 
 @Module({
@@ -21,6 +28,13 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
     AuditModule,
     HealthModule,
     UploadsModule,
+    ScianModule,
+    ZonesModule,
+    WeightsModule,
+    TaxpayersModule,
+    DeterminationsModule,
+    ReportsModule,
+    CentralConfigModule,
   ],
   providers: [
     {

@@ -102,6 +102,8 @@ export class MunicipalitiesService {
       municipality.officialName = dto.officialName;
     if (dto.timezone) municipality.timezone = dto.timezone;
     if (dto.status) municipality.status = dto.status;
+    if (dto.cuotaBaseLegal !== undefined)
+      municipality.cuotaBaseLegal = dto.cuotaBaseLegal;
 
     const saved = await this.municipalityRepo.save(municipality);
 
