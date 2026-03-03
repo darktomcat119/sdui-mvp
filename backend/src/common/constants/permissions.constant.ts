@@ -42,6 +42,8 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
     'determinations:approve',
     'reports:read',
     'reports:export',
+    'documents:generate',
+    'documents:read',
   ],
   [UserRole.TREASURY_OPERATOR]: [
     'dashboard:read',
@@ -60,6 +62,8 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
     'scian:read',
     'determinations:read',
     'reports:read',
+    'documents:generate',
+    'documents:read',
   ],
   [UserRole.COMPTROLLER_AUDITOR]: [
     'audit:read',
@@ -70,6 +74,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
     'taxpayers:read',
     'determinations:read',
     'reports:read',
+    'documents:read',
   ],
   [UserRole.VALIDADOR_TECNICO]: [
     'dashboard:read',

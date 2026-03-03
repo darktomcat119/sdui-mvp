@@ -16,7 +16,7 @@ import { AuditService } from '../audit/audit.service';
 
 @Controller('reports')
 @UseGuards(RolesGuard)
-@Roles(UserRole.MUNICIPAL_ADMIN, UserRole.TREASURY_OPERATOR)
+@Roles(UserRole.MUNICIPAL_ADMIN, UserRole.TREASURY_OPERATOR, UserRole.COMPTROLLER_AUDITOR, UserRole.LEGAL_ANALYST)
 export class ReportsController {
   constructor(
     private readonly reportsService: ReportsService,
@@ -30,7 +30,7 @@ export class ReportsController {
   }
 
   @Get('determinations/csv')
-  @Roles(UserRole.MUNICIPAL_ADMIN)
+  @Roles(UserRole.MUNICIPAL_ADMIN, UserRole.COMPTROLLER_AUDITOR)
   async exportCsv(
     @CurrentUser() user: RequestUser,
     @Res() res: Response,

@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { getDatabaseConfig } from './config/database.config';
+import { RlsInterceptor } from './common/interceptors/rls.interceptor';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { MunicipalitiesModule } from './modules/municipalities/municipalities.module';
@@ -16,6 +17,8 @@ import { TaxpayersModule } from './modules/taxpayers/taxpayers.module';
 import { DeterminationsModule } from './modules/determinations/determinations.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { CentralConfigModule } from './modules/central-config/central-config.module';
+import { DocumentsModule } from './modules/documents/documents.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 
 @Module({
@@ -35,11 +38,17 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
     DeterminationsModule,
     ReportsModule,
     CentralConfigModule,
+    DocumentsModule,
+    NotificationsModule,
   ],
   providers: [
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: RlsInterceptor,
     },
   ],
 })

@@ -19,6 +19,7 @@ import {
 import { DeterminationQueryDto, ResolveLimitExceptionDto } from './dto/determinations.dto';
 import { PaginatedResponseDto, PaginationDto } from '../../common/dto/pagination.dto';
 import { AuditService } from '../audit/audit.service';
+import { CentralConfigService } from '../central-config/central-config.service';
 import { RequestUser } from '../../common/interfaces/jwt-payload.interface';
 
 @Injectable()
@@ -38,6 +39,7 @@ export class DeterminationsService {
     private readonly municipalityRepo: Repository<Municipality>,
     private readonly engine: DeterminationEngineService,
     private readonly auditService: AuditService,
+    private readonly centralConfigService: CentralConfigService,
   ) {}
 
   private async generateFolio(municipalityId: string): Promise<string> {
@@ -114,6 +116,21 @@ export class DeterminationsService {
       maxM2: Math.max(...surfaces),
     };
 
+    // Load active central config for thresholds and zone normalization bounds
+    const centralConfig = await this.centralConfigService.getActive();
+    const thresholds = centralConfig
+      ? {
+          protegido: Number(centralConfig.itdThresholdProtegido),
+          proporcional: Number(centralConfig.itdThresholdProporcional),
+        }
+      : undefined;
+    const zoneNormBounds = centralConfig
+      ? {
+          min: Number(centralConfig.zonaMultMin),
+          max: Number(centralConfig.zonaMultMax),
+        }
+      : undefined;
+
     // Load municipality zone configs
     const muniZones = await this.muniZoneRepo.find({
       where: { municipalityId },
@@ -123,7 +140,19 @@ export class DeterminationsService {
       zoneMultMap.set(mz.zoneId, Number(mz.multiplicador));
     }
 
-    // Delete previous determinations for same fiscal year
+    // Delete previous non-approved determinations for same fiscal year
+    const approvedCount = await this.determRepo.count({
+      where: {
+        municipalityId,
+        ejercicioFiscal: weightConfig.ejercicioFiscal,
+        estatus: 'aprobada',
+      },
+    });
+    if (approvedCount > 0) {
+      throw new BadRequestException(
+        'Cannot re-execute: approved determinations exist for this fiscal year. Reset them first.',
+      );
+    }
     await this.determRepo.delete({
       municipalityId,
       ejercicioFiscal: weightConfig.ejercicioFiscal,
@@ -141,6 +170,8 @@ export class DeterminationsService {
         surfaceContext,
         multiplicador,
         cuotaBaseLegal,
+        thresholds,
+        zoneNormBounds,
       );
 
       // Determine status based on limit check
@@ -154,6 +185,7 @@ export class DeterminationsService {
         taxpayerId: taxpayer.id,
         weightConfigId: weightConfig.id,
         ejercicioFiscal: weightConfig.ejercicioFiscal,
+        configVersionId: centralConfig?.id || null,
         vSuperficie: result.vSuperficie,
         vZona: result.vZona,
         vGiro: result.vGiro,

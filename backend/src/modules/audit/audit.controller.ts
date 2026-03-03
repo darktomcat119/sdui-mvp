@@ -34,7 +34,7 @@ export class AuditController {
   }
 
   @Get(':id')
-  @Roles(UserRole.SYSTEM_ADMIN, UserRole.COMPTROLLER_AUDITOR)
+  @Roles(UserRole.SYSTEM_ADMIN, UserRole.MUNICIPAL_ADMIN, UserRole.COMPTROLLER_AUDITOR)
   async findOne(@Param('id') id: string) {
     const log = await this.auditService.findOne(id);
     if (!log) {

@@ -6,6 +6,7 @@ import { Taxpayer } from '../taxpayers/entities/taxpayer.entity';
 import { WeightConfiguration } from '../weights/entities/weight-configuration.entity';
 import { MunicipalityZone } from '../zones/entities/municipality-zone.entity';
 import { Municipality } from '../municipalities/entities/municipality.entity';
+import { CentralConfigModule } from '../central-config/central-config.module';
 import { DeterminationsService } from './determinations.service';
 import { DeterminationEngineService } from './determination-engine.service';
 import { DeterminationsController } from './determinations.controller';
@@ -20,6 +21,7 @@ import { DeterminationsController } from './determinations.controller';
       MunicipalityZone,
       Municipality,
     ]),
+    CentralConfigModule,
   ],
   controllers: [DeterminationsController],
   providers: [DeterminationsService, DeterminationEngineService],

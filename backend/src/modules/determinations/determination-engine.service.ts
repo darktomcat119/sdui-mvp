@@ -45,6 +45,11 @@ export interface CalculationThresholds {
   proporcional: number;
 }
 
+export interface ZoneNormBounds {
+  min: number;
+  max: number;
+}
+
 @Injectable()
 export class DeterminationEngineService {
   /**
@@ -65,6 +70,7 @@ export class DeterminationEngineService {
     multiplicadorZona: number,
     cuotaBaseLegal: number,
     thresholds?: CalculationThresholds,
+    zoneNormBounds?: ZoneNormBounds,
   ): ITDResult {
     const protegidoThreshold = thresholds?.protegido ?? DEFAULT_PROTEGIDO_THRESHOLD;
 
@@ -75,8 +81,10 @@ export class DeterminationEngineService {
       surfaceContext.maxM2,
     );
 
-    // 2. Normalize zone
-    const vZona = this.normalizeZone(multiplicadorZona);
+    // 2. Normalize zone (use central config bounds if provided)
+    const zMin = zoneNormBounds?.min ?? ZONE_MULT_MIN;
+    const zMax = zoneNormBounds?.max ?? ZONE_MULT_MAX;
+    const vZona = this.normalizeZone(multiplicadorZona, zMin, zMax);
 
     // 3. Map SCIAN impact
     const vGiro = IMPACT_MAP[taxpayer.scian?.impactoSdui] ?? 0.4;
@@ -122,8 +130,14 @@ export class DeterminationEngineService {
     return Math.max(0, Math.min(1, v));
   }
 
-  private normalizeZone(multiplicador: number): number {
-    const v = (multiplicador - ZONE_MULT_MIN) / (ZONE_MULT_MAX - ZONE_MULT_MIN);
+  private normalizeZone(
+    multiplicador: number,
+    min: number = ZONE_MULT_MIN,
+    max: number = ZONE_MULT_MAX,
+  ): number {
+    const range = max - min;
+    if (range <= 0) return 0.5;
+    const v = (multiplicador - min) / range;
     return Math.max(0, Math.min(1, v));
   }
 

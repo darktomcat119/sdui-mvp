@@ -23,35 +23,43 @@ export class ReportsService {
       throw new ForbiddenException('User must belong to a municipality');
     }
 
+    // Use aggregate queries instead of loading all records into memory
     const totalContribuyentes = await this.taxpayerRepo.count({
       where: { municipalityId, estatus: 'activo' },
     });
 
-    const determinations = await this.determRepo.find({
+    const totalDeterminaciones = await this.determRepo.count({
       where: { municipalityId },
-      relations: ['taxpayer', 'taxpayer.scian', 'taxpayer.zone'],
     });
 
-    const byClasificacion = {
+    // Classification counts
+    const byClasificacionRaw = await this.determRepo
+      .createQueryBuilder('d')
+      .select('d.clasificacion', 'clasificacion')
+      .addSelect('COUNT(*)::int', 'count')
+      .where('d.municipalityId = :municipalityId', { municipalityId })
+      .groupBy('d.clasificacion')
+      .getRawMany();
+
+    const byClasificacion: Record<string, number> = {
       protegido: 0,
       moderado: 0,
       proporcional: 0,
     };
-    let totalVariacion = 0;
-    let maxVariacion = 0;
-
-    for (const d of determinations) {
-      byClasificacion[d.clasificacion] =
-        (byClasificacion[d.clasificacion] || 0) + 1;
-      const v = Number(d.variacionPct);
-      totalVariacion += v;
-      if (v > maxVariacion) maxVariacion = v;
+    for (const row of byClasificacionRaw) {
+      byClasificacion[row.clasificacion] = row.count;
     }
 
-    const promedioImpacto =
-      determinations.length > 0
-        ? totalVariacion / determinations.length
-        : 0;
+    // Aggregate stats
+    const stats = await this.determRepo
+      .createQueryBuilder('d')
+      .select('AVG(d.variacionPct)', 'avg')
+      .addSelect('MAX(d.variacionPct)', 'max')
+      .where('d.municipalityId = :municipalityId', { municipalityId })
+      .getRawOne();
+
+    const promedioImpacto = parseFloat(stats?.avg) || 0;
+    const impactoMaximo = parseFloat(stats?.max) || 0;
 
     // Get current weight config for limit info
     const weightConfig = await this.weightRepo.findOne({
@@ -59,37 +67,37 @@ export class ReportsService {
       order: { ejercicioFiscal: 'DESC' },
     });
 
-    // Distribution by SCIAN
-    const giroMap = new Map<string, number>();
-    for (const d of determinations) {
-      if (d.taxpayer?.scian) {
-        const key = d.taxpayer.scian.descripcionScian;
-        giroMap.set(key, (giroMap.get(key) || 0) + 1);
-      }
-    }
-    const distribucionGiros = Array.from(giroMap.entries())
-      .map(([giro, count]) => ({ giro, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 10);
+    // Distribution by SCIAN (top 10, via aggregate query)
+    const distribucionGiros = await this.determRepo
+      .createQueryBuilder('d')
+      .innerJoin('d.taxpayer', 't')
+      .innerJoin('t.scian', 's')
+      .select('s.descripcionScian', 'giro')
+      .addSelect('COUNT(*)::int', 'count')
+      .where('d.municipalityId = :municipalityId', { municipalityId })
+      .groupBy('s.descripcionScian')
+      .orderBy('"count"', 'DESC')
+      .limit(10)
+      .getRawMany();
 
-    // Distribution by zone
-    const zonaMap = new Map<string, number>();
-    for (const d of determinations) {
-      if (d.taxpayer?.zone) {
-        const key = d.taxpayer.zone.nombreZona;
-        zonaMap.set(key, (zonaMap.get(key) || 0) + 1);
-      }
-    }
-    const distribucionZonas = Array.from(zonaMap.entries())
-      .map(([zona, count]) => ({ zona, count }))
-      .sort((a, b) => b.count - a.count);
+    // Distribution by zone (via aggregate query)
+    const distribucionZonas = await this.determRepo
+      .createQueryBuilder('d')
+      .innerJoin('d.taxpayer', 't')
+      .innerJoin('t.zone', 'z')
+      .select('z.nombreZona', 'zona')
+      .addSelect('COUNT(*)::int', 'count')
+      .where('d.municipalityId = :municipalityId', { municipalityId })
+      .groupBy('z.nombreZona')
+      .orderBy('"count"', 'DESC')
+      .getRawMany();
 
     return {
       totalContribuyentes,
-      totalDeterminaciones: determinations.length,
+      totalDeterminaciones,
       byClasificacion,
       promedioImpacto: Math.round(promedioImpacto * 10000) / 10000,
-      impactoMaximo: Math.round(maxVariacion * 10000) / 10000,
+      impactoMaximo: Math.round(impactoMaximo * 10000) / 10000,
       limiteAplicado: weightConfig
         ? Number(weightConfig.limiteVariacionPct)
         : null,
@@ -127,20 +135,28 @@ export class ReportsService {
       'estatus',
     ];
 
+    const escapeCsv = (val: unknown): string => {
+      const str = String(val ?? '');
+      if (str.includes('"') || str.includes(',') || str.includes('\n')) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
     const rows = determinations.map((d) => [
-      `"${d.taxpayer?.razonSocial || ''}"`,
-      d.taxpayer?.rfc || '',
-      d.taxpayer?.scian?.codigoScian || '',
-      `"${d.taxpayer?.scian?.descripcionScian || ''}"`,
-      `"${d.taxpayer?.zone?.nombreZona || ''}"`,
-      d.taxpayer?.tipoContribuyente || '',
+      escapeCsv(d.taxpayer?.razonSocial),
+      escapeCsv(d.taxpayer?.rfc),
+      escapeCsv(d.taxpayer?.scian?.codigoScian),
+      escapeCsv(d.taxpayer?.scian?.descripcionScian),
+      escapeCsv(d.taxpayer?.zone?.nombreZona),
+      escapeCsv(d.taxpayer?.tipoContribuyente),
       d.taxpayer?.superficieM2 || '',
       d.cuotaVigente,
       d.itd,
-      d.clasificacion,
+      escapeCsv(d.clasificacion),
       d.cuotaSdui,
       (Number(d.variacionPct) * 100).toFixed(2) + '%',
-      d.estatus,
+      escapeCsv(d.estatus),
     ]);
 
     return [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');

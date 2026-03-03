@@ -49,7 +49,7 @@ export class DeterminationsController {
   }
 
   @Get()
-  @Roles(UserRole.MUNICIPAL_ADMIN, UserRole.TREASURY_OPERATOR, UserRole.VALIDADOR_TECNICO)
+  @Roles(UserRole.MUNICIPAL_ADMIN, UserRole.TREASURY_OPERATOR, UserRole.VALIDADOR_TECNICO, UserRole.COMPTROLLER_AUDITOR)
   async findAll(
     @Query() query: DeterminationQueryDto,
     @CurrentUser() user: RequestUser,
@@ -58,7 +58,7 @@ export class DeterminationsController {
   }
 
   @Get('summary')
-  @Roles(UserRole.MUNICIPAL_ADMIN, UserRole.TREASURY_OPERATOR, UserRole.VALIDADOR_TECNICO)
+  @Roles(UserRole.MUNICIPAL_ADMIN, UserRole.TREASURY_OPERATOR, UserRole.VALIDADOR_TECNICO, UserRole.COMPTROLLER_AUDITOR)
   async getSummary(@CurrentUser() user: RequestUser) {
     const data = await this.determinationsService.getSummary(user);
     return { data };
@@ -74,7 +74,7 @@ export class DeterminationsController {
   }
 
   @Get(':id')
-  @Roles(UserRole.MUNICIPAL_ADMIN, UserRole.TREASURY_OPERATOR, UserRole.VALIDADOR_TECNICO)
+  @Roles(UserRole.MUNICIPAL_ADMIN, UserRole.TREASURY_OPERATOR, UserRole.VALIDADOR_TECNICO, UserRole.COMPTROLLER_AUDITOR, UserRole.LEGAL_ANALYST)
   async findOne(
     @Param('id') id: string,
     @CurrentUser() user: RequestUser,
