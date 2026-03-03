@@ -312,6 +312,12 @@ const es = {
   'detDetail.limitApplied': 'Límite Aplicado',
   'detDetail.loadError': 'No se pudo cargar el detalle de la determinación.',
   'detDetail.notFound': 'Determinación no encontrada.',
+  'detDetail.generateDictamen': 'Generar Dictamen',
+  'detDetail.downloadDictamen': 'Descargar Dictamen',
+  'detDetail.generating': 'Generando...',
+  'detDetail.dictamenSuccess': 'Dictamen generado exitosamente.',
+  'detDetail.dictamenError': 'No se pudo generar el dictamen.',
+  'detDetail.downloadError': 'No se pudo descargar el documento.',
 
   // Exceptions
   'exceptions.colFolio': 'Folio',

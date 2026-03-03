@@ -312,6 +312,12 @@ const en = {
   'detDetail.limitApplied': 'Limit Applied',
   'detDetail.loadError': 'Could not load determination details.',
   'detDetail.notFound': 'Determination not found.',
+  'detDetail.generateDictamen': 'Generate Dictamen',
+  'detDetail.downloadDictamen': 'Download Dictamen',
+  'detDetail.generating': 'Generating...',
+  'detDetail.dictamenSuccess': 'Dictamen generated successfully.',
+  'detDetail.dictamenError': 'Could not generate dictamen.',
+  'detDetail.downloadError': 'Could not download document.',
 
   // Exceptions
   'exceptions.colFolio': 'Folio',

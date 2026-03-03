@@ -1,20 +1,29 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { determinationsService } from '../../services/determinations.service';
+import { documentsService } from '../../services/documents.service';
 import { useToast } from '../../contexts/ToastContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { StatusBadge } from '../../components/ui/StatusBadge/StatusBadge';
 import { Button } from '../../components/ui/Button/Button';
 import { Icon } from '../../components/ui/Icon/Icon';
+import { UserRole } from '../../types/auth.types';
 import type { Determination } from '../../types/sdui.types';
 
 export function DeterminationDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
   const { addToast } = useToast();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [determ, setDeterm] = useState<Determination | null>(null);
   const [loading, setLoading] = useState(true);
+  const [generatingPdf, setGeneratingPdf] = useState(false);
+  const [documentId, setDocumentId] = useState<string | null>(null);
+
+  const canGenerateDictamen =
+    user?.role === UserRole.MUNICIPAL_ADMIN || user?.role === UserRole.LEGAL_ANALYST;
 
   useEffect(() => {
     if (!id) return;
@@ -31,6 +40,35 @@ export function DeterminationDetailPage() {
     };
     load();
   }, [id, addToast, t]);
+
+  const handleGenerateDictamen = useCallback(async () => {
+    if (!id) return;
+    setGeneratingPdf(true);
+    try {
+      const res = await documentsService.generateDictamen(id);
+      setDocumentId(res.data.id);
+      addToast({ variant: 'success', message: t('detDetail.dictamenSuccess') });
+    } catch {
+      addToast({ variant: 'error', message: t('detDetail.dictamenError') });
+    } finally {
+      setGeneratingPdf(false);
+    }
+  }, [id, addToast, t]);
+
+  const handleDownloadDictamen = useCallback(async () => {
+    if (!documentId) return;
+    try {
+      const blob = await documentsService.download(documentId);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `dictamen-${id}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      addToast({ variant: 'error', message: t('detDetail.downloadError') });
+    }
+  }, [documentId, id, addToast, t]);
 
   if (loading) {
     return (
@@ -85,10 +123,27 @@ export function DeterminationDetailPage() {
 
   return (
     <div className="flex flex-col gap-lg">
-      <Button variant="secondary" onClick={() => navigate('/determinations')} className="self-start">
-        <Icon name="chevronLeft" size={16} />
-        {t('detDetail.backToList')}
-      </Button>
+      <div className="flex items-center justify-between">
+        <Button variant="secondary" onClick={() => navigate('/determinations')}>
+          <Icon name="chevronLeft" size={16} />
+          {t('detDetail.backToList')}
+        </Button>
+        {canGenerateDictamen && (
+          <div className="flex gap-sm">
+            {documentId ? (
+              <Button variant="primary" onClick={handleDownloadDictamen}>
+                <Icon name="download" size={16} />
+                {t('detDetail.downloadDictamen')}
+              </Button>
+            ) : (
+              <Button variant="primary" onClick={handleGenerateDictamen} disabled={generatingPdf}>
+                <Icon name="save" size={16} />
+                {generatingPdf ? t('detDetail.generating') : t('detDetail.generateDictamen')}
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Top row: Taxpayer Info + Result */}
       <div className="grid grid-cols-[1fr_320px] gap-lg">
