@@ -84,16 +84,14 @@ export function CentralConfigPage() {
     setFormMode('create');
   };
 
+  const openDuplicate = (v: CentralConfigVersion) => {
+    setForm(versionToForm(v));
+    setFormMode('create');
+  };
+
   const openEdit = (v: CentralConfigVersion) => {
-    if (v.active) {
-      // For active version, pre-fill a NEW version form based on its values
-      setForm(versionToForm(v));
-      setFormMode('create');
-    } else {
-      // For inactive version, edit in place
-      setForm(versionToForm(v));
-      setFormMode(v.id);
-    }
+    setForm(versionToForm(v));
+    setFormMode(v.id);
   };
 
   const handleSave = async () => {
@@ -110,7 +108,10 @@ export function CentralConfigPage() {
       setFormMode(null);
       await loadHistory();
     } catch {
-      addToast({ variant: 'error', message: t('centralConfig.createError') });
+      addToast({
+        variant: 'error',
+        message: formMode === 'create' ? t('centralConfig.createError') : t('centralConfig.updateError'),
+      });
     } finally {
       setSaving(false);
     }
@@ -234,6 +235,7 @@ export function CentralConfigPage() {
           version={v}
           onActivate={handleActivate}
           onEdit={openEdit}
+          onDuplicate={openDuplicate}
           onDelete={handleDelete}
           t={t}
         />
@@ -257,12 +259,14 @@ function VersionCard({
   version: v,
   onActivate,
   onEdit,
+  onDuplicate,
   onDelete,
   t,
 }: {
   version: CentralConfigVersion;
   onActivate: (id: string) => void;
   onEdit: (v: CentralConfigVersion) => void;
+  onDuplicate: (v: CentralConfigVersion) => void;
   onDelete: (id: string) => void;
   t: (key: string) => string;
 }) {
@@ -286,12 +290,17 @@ function VersionCard({
               year: 'numeric', month: 'short', day: 'numeric',
             })}
           </span>
-          <Button variant="tertiary" onClick={() => onEdit(v)}>
-            <Icon name="edit" size={14} />
-            {v.active ? t('centralConfig.duplicate') : t('common.edit')}
-          </Button>
-          {!v.active && (
+          {v.active ? (
+            <Button variant="tertiary" onClick={() => onDuplicate(v)}>
+              <Icon name="copy" size={14} />
+              {t('centralConfig.duplicate')}
+            </Button>
+          ) : (
             <>
+              <Button variant="tertiary" onClick={() => onEdit(v)}>
+                <Icon name="edit" size={14} />
+                {t('common.edit')}
+              </Button>
               <Button variant="secondary" onClick={() => onActivate(v.id)}>
                 {t('centralConfig.activate')}
               </Button>

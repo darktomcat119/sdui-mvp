@@ -46,7 +46,6 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException({
         message: 'INVALID_CREDENTIALS',
-        attemptsRemaining: config.maxFailedAttempts,
       });
     }
 

@@ -382,6 +382,7 @@ const es = {
   'centralConfig.loadError': 'No se pudo cargar la configuración central.',
   'centralConfig.createSuccess': 'Versión de configuración creada.',
   'centralConfig.createError': 'Error al crear la versión de configuración.',
+  'centralConfig.updateError': 'Error al actualizar la versión de configuración.',
   'centralConfig.activateSuccess': 'Versión de configuración activada.',
   'centralConfig.activateError': 'Error al activar la versión de configuración.',
   'centralConfig.deleteSuccess': 'Versión de configuración eliminada.',

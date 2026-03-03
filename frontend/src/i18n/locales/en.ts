@@ -382,6 +382,7 @@ const en = {
   'centralConfig.loadError': 'Could not load central configuration.',
   'centralConfig.createSuccess': 'Configuration version created.',
   'centralConfig.createError': 'Error creating configuration version.',
+  'centralConfig.updateError': 'Error updating configuration version.',
   'centralConfig.activateSuccess': 'Configuration version activated.',
   'centralConfig.activateError': 'Error activating configuration version.',
   'centralConfig.deleteSuccess': 'Configuration version deleted.',
