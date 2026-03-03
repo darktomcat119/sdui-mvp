@@ -126,6 +126,17 @@ export function CentralConfigPage() {
     }
   };
 
+  const handleDelete = async (id: string) => {
+    if (!window.confirm(t('centralConfig.confirmDelete'))) return;
+    try {
+      await centralConfigService.remove(id);
+      addToast({ variant: 'success', message: t('centralConfig.deleteSuccess') });
+      await loadHistory();
+    } catch {
+      addToast({ variant: 'error', message: t('centralConfig.deleteError') });
+    }
+  };
+
   const updateForm = (key: string, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
@@ -223,6 +234,7 @@ export function CentralConfigPage() {
           version={v}
           onActivate={handleActivate}
           onEdit={openEdit}
+          onDelete={handleDelete}
           t={t}
         />
       ))}
@@ -245,11 +257,13 @@ function VersionCard({
   version: v,
   onActivate,
   onEdit,
+  onDelete,
   t,
 }: {
   version: CentralConfigVersion;
   onActivate: (id: string) => void;
   onEdit: (v: CentralConfigVersion) => void;
+  onDelete: (id: string) => void;
   t: (key: string) => string;
 }) {
   const protPct = (Number(v.itdThresholdProtegido) * 100).toFixed(0);
@@ -277,9 +291,14 @@ function VersionCard({
             {v.active ? t('centralConfig.duplicate') : t('common.edit')}
           </Button>
           {!v.active && (
-            <Button variant="secondary" onClick={() => onActivate(v.id)}>
-              {t('centralConfig.activate')}
-            </Button>
+            <>
+              <Button variant="secondary" onClick={() => onActivate(v.id)}>
+                {t('centralConfig.activate')}
+              </Button>
+              <Button variant="tertiary" onClick={() => onDelete(v.id)}>
+                <Icon name="trash" size={14} color="var(--color-error-red)" />
+              </Button>
+            </>
           )}
         </div>
       </div>

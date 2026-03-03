@@ -164,4 +164,33 @@ export class CentralConfigService {
 
     return saved;
   }
+
+  async remove(
+    id: string,
+    currentUser: RequestUser,
+    sourceIp?: string,
+  ): Promise<void> {
+    const config = await this.configRepo.findOne({ where: { id } });
+    if (!config) {
+      throw new NotFoundException('Configuration version not found');
+    }
+    if (config.active) {
+      throw new BadRequestException('Cannot delete the active version');
+    }
+
+    await this.configRepo.remove(config);
+
+    await this.auditService.log({
+      userId: currentUser.id,
+      userName: `${currentUser.firstName} ${currentUser.lastName}`,
+      userRole: currentUser.role,
+      municipalityId: null,
+      sourceIp,
+      action: 'central_config.delete',
+      module: 'central-config',
+      entityType: 'central_config_versions',
+      entityId: id,
+      dataBefore: { version: config.version },
+    });
+  }
 }

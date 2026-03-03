@@ -378,6 +378,9 @@ const es = {
   'centralConfig.createError': 'Error al crear la versión de configuración.',
   'centralConfig.activateSuccess': 'Versión de configuración activada.',
   'centralConfig.activateError': 'Error al activar la versión de configuración.',
+  'centralConfig.deleteSuccess': 'Versión de configuración eliminada.',
+  'centralConfig.deleteError': 'Error al eliminar la versión de configuración.',
+  'centralConfig.confirmDelete': '¿Eliminar esta versión? Esta acción no se puede deshacer.',
   'route.centralConfig.title': 'Configuración Central',
   'route.centralConfig.subtitle': 'Gestionar rangos permitidos para configuraciones municipales',
 

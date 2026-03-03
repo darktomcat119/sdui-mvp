@@ -48,4 +48,9 @@ export const centralConfigService = {
     const response = await api.patch(`/central-config/${id}/activate`);
     return response.data;
   },
+
+  async remove(id: string): Promise<ApiResponse<void>> {
+    const response = await api.delete(`/central-config/${id}`);
+    return response.data;
+  },
 };

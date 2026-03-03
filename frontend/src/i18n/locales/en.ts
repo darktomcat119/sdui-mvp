@@ -378,6 +378,9 @@ const en = {
   'centralConfig.createError': 'Error creating configuration version.',
   'centralConfig.activateSuccess': 'Configuration version activated.',
   'centralConfig.activateError': 'Error activating configuration version.',
+  'centralConfig.deleteSuccess': 'Configuration version deleted.',
+  'centralConfig.deleteError': 'Error deleting configuration version.',
+  'centralConfig.confirmDelete': 'Delete this version? This action cannot be undone.',
   'route.centralConfig.title': 'Central Configuration',
   'route.centralConfig.subtitle': 'Manage allowed ranges for municipal configurations',
 

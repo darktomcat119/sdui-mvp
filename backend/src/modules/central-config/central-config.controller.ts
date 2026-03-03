@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Patch,
+  Delete,
   Param,
   Body,
   UseGuards,
@@ -70,5 +71,16 @@ export class CentralConfigController {
   ) {
     const data = await this.centralConfigService.activate(id, user, req.ip);
     return { data, message: 'Configuration version activated' };
+  }
+
+  @Delete(':id')
+  @Roles(UserRole.SYSTEM_ADMIN)
+  async remove(
+    @Param('id') id: string,
+    @CurrentUser() user: RequestUser,
+    @Req() req: Request,
+  ) {
+    await this.centralConfigService.remove(id, user, req.ip);
+    return { message: 'Configuration version deleted' };
   }
 }
