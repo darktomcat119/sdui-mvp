@@ -39,6 +39,11 @@ export const centralConfigService = {
     return response.data;
   },
 
+  async update(id: string, data: Omit<CentralConfigVersion, 'id' | 'version' | 'active' | 'createdAt'>): Promise<ApiResponse<CentralConfigVersion>> {
+    const response = await api.patch(`/central-config/${id}`, data);
+    return response.data;
+  },
+
   async activate(id: string): Promise<ApiResponse<CentralConfigVersion>> {
     const response = await api.patch(`/central-config/${id}/activate`);
     return response.data;

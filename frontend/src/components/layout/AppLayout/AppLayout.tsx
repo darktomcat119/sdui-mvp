@@ -61,7 +61,7 @@ export function AppLayout() {
             </div>
           </div>
         )}
-        <div className="py-xl px-2xl pb-2xl max-w-[1280px]">
+        <div className="py-xl px-2xl pb-2xl max-w-[1280px] mx-auto">
           <Outlet />
         </div>
       </main>

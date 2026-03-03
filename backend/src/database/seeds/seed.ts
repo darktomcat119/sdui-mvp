@@ -320,14 +320,19 @@ async function seed() {
     `SELECT COUNT(*) as count FROM central_config_versions`,
   );
   if (parseInt(centralConfigCount[0].count, 10) === 0) {
+    const sysAdminRow = await dataSource.query(
+      `SELECT id FROM users WHERE email = 'admin@sdui.gob.mx'`,
+    );
+    const sysAdminId = sysAdminRow[0].id;
     await dataSource.query(
       `INSERT INTO central_config_versions
        (version, p_superficie_min, p_superficie_max, p_zona_min, p_zona_max,
         p_giro_min, p_giro_max, p_tipo_min, p_tipo_max,
-        zona_mult_min, zona_mult_max, variacion_limit_min, variacion_limit_max,
-        itd_threshold_protegido, itd_threshold_proporcional, active, justification)
+        zone_mult_min, zone_mult_max, limite_variacion_pct_min, limite_variacion_pct_max,
+        itd_protegido_threshold, itd_proporcional_threshold, activo, justificacion, created_by)
        VALUES (1, 0.2500, 0.4000, 0.2000, 0.3000, 0.1500, 0.2500, 0.1000, 0.2000,
-        0.50, 2.00, 0.1000, 0.5000, 0.3300, 0.6600, true, 'Initial central configuration')`,
+        0.50, 2.00, 0.1000, 0.5000, 0.3300, 0.6600, true, 'Initial central configuration', $1)`,
+      [sysAdminId],
     );
     console.log('Created initial central config version (v1, active)');
   } else {

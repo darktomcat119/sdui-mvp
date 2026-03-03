@@ -49,6 +49,18 @@ export class CentralConfigController {
     return { data, message: 'Central configuration version created' };
   }
 
+  @Patch(':id')
+  @Roles(UserRole.SYSTEM_ADMIN)
+  async update(
+    @Param('id') id: string,
+    @Body() dto: CreateCentralConfigDto,
+    @CurrentUser() user: RequestUser,
+    @Req() req: Request,
+  ) {
+    const data = await this.centralConfigService.update(id, dto, user, req.ip);
+    return { data, message: 'Central configuration version updated' };
+  }
+
   @Patch(':id/activate')
   @Roles(UserRole.SYSTEM_ADMIN)
   async activate(

@@ -33,8 +33,9 @@ export class CentralConfigService {
     sourceIp?: string,
   ): Promise<CentralConfigVersion> {
     // Get next version number
-    const latest = await this.configRepo.findOne({
+    const [latest] = await this.configRepo.find({
       order: { version: 'DESC' },
+      take: 1,
     });
     const nextVersion = latest ? latest.version + 1 : 1;
 
@@ -71,6 +72,57 @@ export class CentralConfigService {
       module: 'central-config',
       entityType: 'central_config_versions',
       entityId: saved.id,
+      dataAfter: { version: saved.version },
+    });
+
+    return saved;
+  }
+
+  async update(
+    id: string,
+    dto: CreateCentralConfigDto,
+    currentUser: RequestUser,
+    sourceIp?: string,
+  ): Promise<CentralConfigVersion> {
+    const config = await this.configRepo.findOne({ where: { id } });
+    if (!config) {
+      throw new NotFoundException('Configuration version not found');
+    }
+    if (config.active) {
+      throw new BadRequestException('Cannot edit an active version. Create a new version instead.');
+    }
+
+    const dataBefore = { ...config };
+
+    config.pSuperficieMin = dto.pSuperficieMin;
+    config.pSuperficieMax = dto.pSuperficieMax;
+    config.pZonaMin = dto.pZonaMin;
+    config.pZonaMax = dto.pZonaMax;
+    config.pGiroMin = dto.pGiroMin;
+    config.pGiroMax = dto.pGiroMax;
+    config.pTipoMin = dto.pTipoMin;
+    config.pTipoMax = dto.pTipoMax;
+    config.zonaMultMin = dto.zonaMultMin;
+    config.zonaMultMax = dto.zonaMultMax;
+    config.variacionLimitMin = dto.variacionLimitMin;
+    config.variacionLimitMax = dto.variacionLimitMax;
+    config.itdThresholdProtegido = dto.itdThresholdProtegido;
+    config.itdThresholdProporcional = dto.itdThresholdProporcional;
+    config.justification = dto.justification || null;
+
+    const saved = await this.configRepo.save(config);
+
+    await this.auditService.log({
+      userId: currentUser.id,
+      userName: `${currentUser.firstName} ${currentUser.lastName}`,
+      userRole: currentUser.role,
+      municipalityId: null,
+      sourceIp,
+      action: 'central_config.update',
+      module: 'central-config',
+      entityType: 'central_config_versions',
+      entityId: id,
+      dataBefore: { version: dataBefore.version },
       dataAfter: { version: saved.version },
     });
 

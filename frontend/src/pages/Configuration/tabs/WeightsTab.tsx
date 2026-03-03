@@ -251,13 +251,19 @@ export function WeightsTab() {
 }
 
 function WeightCard({ label, value, range }: { label: string; value: number; range: string }) {
+  const pct = value * 100;
   return (
-    <div className="bg-surface rounded-md p-lg">
-      <span className="text-small text-medium-gray">{label}</span>
-      <p className="text-heading font-bold text-black mt-xs mb-0">
-        {(value * 100).toFixed(0)}%
-      </p>
-      <span className="text-caption text-light-gray">{range}</span>
+    <div className="bg-white rounded-lg border border-border p-lg border-l-[3px] border-l-action-blue">
+      <div className="flex justify-between items-baseline mb-sm">
+        <span className="text-small font-medium text-dark-gray">{label}</span>
+        <span className="text-caption text-medium-gray">{range}</span>
+      </div>
+      <div className="text-[22px] font-bold font-mono text-institutional-blue mb-sm">
+        {pct.toFixed(0)}%
+      </div>
+      <div className="w-full h-[5px] bg-[#EBF0F5] rounded-full overflow-hidden">
+        <div className="h-full bg-action-blue rounded-full" style={{ width: `${pct * 2}%` }} />
+      </div>
     </div>
   );
 }

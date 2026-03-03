@@ -33,13 +33,17 @@ export function DeterminationDetailPage() {
   }, [id, addToast, t]);
 
   if (loading) {
-    return <div className="text-medium-gray text-body p-xl text-center">{t('common.loading')}</div>;
+    return (
+      <div className="flex items-center justify-center py-3xl">
+        <Icon name="spinner" size={24} color="var(--color-medium-gray)" />
+      </div>
+    );
   }
 
   if (!determ) {
     return (
-      <div className="text-center p-3xl text-medium-gray text-body">
-        {t('detDetail.notFound')}
+      <div className="bg-white border border-border rounded-lg p-3xl text-center">
+        <p className="text-body text-dark-gray">{t('detDetail.notFound')}</p>
       </div>
     );
   }
@@ -57,7 +61,6 @@ export function DeterminationDetailPage() {
     return 'warning';
   };
 
-  // Calculate partial products
   const vS = Number(determ.vSuperficie);
   const vZ = Number(determ.vZona);
   const vG = Number(determ.vGiro);
@@ -71,93 +74,93 @@ export function DeterminationDetailPage() {
   const cuotaSdui = Number(determ.cuotaSdui);
   const variacion = Number(determ.variacionPct) * 100;
 
-  // Calculate factor from ITD (continuous formula)
   const protThreshold = 0.33;
   let factor = 0;
   if (itd >= protThreshold) {
     factor = (itd - protThreshold) / (1 - protThreshold);
   }
 
+  const itdColor = determ.clasificacion === 'protegido' ? '#2C7A3E'
+    : determ.clasificacion === 'moderado' ? '#C47F17' : '#A82C2C';
+
   return (
-    <div className="flex flex-col gap-[20px]">
+    <div className="flex flex-col gap-lg">
       <Button variant="secondary" onClick={() => navigate('/determinations')} className="self-start">
         <Icon name="chevronLeft" size={16} />
         {t('detDetail.backToList')}
       </Button>
 
-      {/* Taxpayer Info */}
-      <div className="bg-white border border-border rounded-md p-xl">
-        <h3 className="text-body font-semibold text-black m-0 mb-md">{t('detDetail.taxpayerInfo')}</h3>
-        <div className="grid grid-cols-3 gap-md">
-          <InfoItem label={t('detDetail.businessName')} value={determ.taxpayer?.razonSocial || '—'} />
-          <InfoItem label={t('detDetail.zone')} value={determ.taxpayer?.zone?.nombreZona || '—'} />
-          <InfoItem label={t('detDetail.giro')} value={determ.taxpayer?.scian?.descripcionScian || '—'} />
-          <InfoItem label={t('detDetail.type')} value={determ.taxpayer?.tipoContribuyente || '—'} />
-          <InfoItem label={t('detDetail.surface')} value={`${Number(determ.taxpayer?.superficieM2 || 0).toLocaleString()} m²`} />
-          <InfoItem label={t('detDetail.fiscalYear')} value={determ.ejercicioFiscal.toString()} />
+      {/* Top row: Taxpayer Info + Result */}
+      <div className="grid grid-cols-[1fr_320px] gap-lg">
+        {/* Taxpayer Info */}
+        <div className="bg-white border border-border rounded-lg overflow-hidden">
+          <div className="px-xl py-md border-b border-border-light">
+            <h3 className="text-body font-semibold text-black m-0">{t('detDetail.taxpayerInfo')}</h3>
+          </div>
+          <div className="p-xl">
+            <div className="grid grid-cols-3 gap-x-xl gap-y-md">
+              <InfoItem label={t('detDetail.businessName')} value={determ.taxpayer?.razonSocial || '—'} />
+              <InfoItem label={t('detDetail.zone')} value={determ.taxpayer?.zone?.nombreZona || '—'} />
+              <InfoItem label={t('detDetail.giro')} value={determ.taxpayer?.scian?.descripcionScian || '—'} />
+              <InfoItem label={t('detDetail.type')} value={determ.taxpayer?.tipoContribuyente || '—'} />
+              <InfoItem label={t('detDetail.surface')} value={`${Number(determ.taxpayer?.superficieM2 || 0).toLocaleString()} m²`} />
+              <InfoItem label={t('detDetail.fiscalYear')} value={determ.ejercicioFiscal.toString()} />
+            </div>
+          </div>
         </div>
-      </div>
 
-      {/* Status & Classification */}
-      <div className="bg-white border border-border rounded-md p-xl">
-        <h3 className="text-body font-semibold text-black m-0 mb-md">{t('detDetail.result')}</h3>
-        <div className="flex items-center gap-lg mb-md">
-          <div className="flex items-center gap-sm">
-            <span className="text-small text-medium-gray">{t('detDetail.classification')}:</span>
-            <StatusBadge status={clasificacionColor(determ.clasificacion) as any} label={determ.clasificacion} />
+        {/* Result Card */}
+        <div className="bg-white border border-border rounded-lg overflow-hidden">
+          <div className="px-xl py-md border-b border-border-light">
+            <h3 className="text-body font-semibold text-black m-0">{t('detDetail.result')}</h3>
           </div>
-          <div className="flex items-center gap-sm">
-            <span className="text-small text-medium-gray">{t('detDetail.status')}:</span>
-            <StatusBadge status={estatusColor(determ.estatus) as any} label={determ.estatus} />
-          </div>
-          <div className="flex items-center gap-sm">
-            <span className="text-small text-medium-gray">ITD:</span>
-            <span className="font-mono font-bold text-heading">{itd.toFixed(4)}</span>
+          <div className="p-xl flex flex-col items-center text-center gap-md">
+            {/* ITD Circle */}
+            <div
+              className="w-[80px] h-[80px] rounded-full flex items-center justify-center border-[3px]"
+              style={{ borderColor: itdColor, color: itdColor }}
+            >
+              <span className="font-mono font-bold text-[18px]">{itd.toFixed(2)}</span>
+            </div>
+            <div className="flex gap-md">
+              <StatusBadge status={clasificacionColor(determ.clasificacion) as any} label={determ.clasificacion} />
+              <StatusBadge status={estatusColor(determ.estatus) as any} label={determ.estatus} />
+            </div>
+            <div className="text-[22px] font-bold font-mono text-action-blue">
+              ${cuotaSdui.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+            </div>
+            <span className="text-caption text-medium-gray">{t('detDetail.cuotaSdui')}</span>
           </div>
         </div>
       </div>
 
       {/* Calculation Breakdown */}
-      <div className="bg-white border border-border rounded-md p-xl">
-        <h3 className="text-body font-semibold text-black m-0 mb-md">{t('detDetail.breakdown')}</h3>
-        <div className="overflow-x-auto">
+      <div className="bg-white border border-border rounded-lg overflow-hidden">
+        <div className="px-xl py-md border-b border-border-light">
+          <h3 className="text-body font-semibold text-black m-0">{t('detDetail.breakdown')}</h3>
+        </div>
+        <div className="p-xl">
           <table className="w-full text-small border-collapse">
             <thead>
-              <tr className="border-b border-border">
-                <th className="text-left py-sm px-md text-medium-gray font-medium">{t('detDetail.variable')}</th>
-                <th className="text-right py-sm px-md text-medium-gray font-medium">{t('detDetail.normalizedValue')}</th>
-                <th className="text-right py-sm px-md text-medium-gray font-medium">{t('detDetail.weight')}</th>
-                <th className="text-right py-sm px-md text-medium-gray font-medium">{t('detDetail.partial')}</th>
+              <tr className="border-b-2 border-border">
+                <th className="text-left py-sm px-md text-caption text-medium-gray font-semibold uppercase tracking-[0.5px]">{t('detDetail.variable')}</th>
+                <th className="text-right py-sm px-md text-caption text-medium-gray font-semibold uppercase tracking-[0.5px]">{t('detDetail.normalizedValue')}</th>
+                <th className="text-right py-sm px-md text-caption text-medium-gray font-semibold uppercase tracking-[0.5px]">{t('detDetail.weight')}</th>
+                <th className="text-right py-sm px-md text-caption text-medium-gray font-semibold uppercase tracking-[0.5px]">{t('detDetail.partial')}</th>
               </tr>
             </thead>
             <tbody>
-              <tr className="border-b border-border-light">
-                <td className="py-sm px-md">{t('config.surface')}</td>
-                <td className="py-sm px-md text-right font-mono">{vS.toFixed(4)}</td>
-                <td className="py-sm px-md text-right font-mono">{(pS * 100).toFixed(0)}%</td>
-                <td className="py-sm px-md text-right font-mono font-semibold">{(vS * pS).toFixed(4)}</td>
-              </tr>
-              <tr className="border-b border-border-light">
-                <td className="py-sm px-md">{t('config.zone')}</td>
-                <td className="py-sm px-md text-right font-mono">{vZ.toFixed(4)}</td>
-                <td className="py-sm px-md text-right font-mono">{(pZ * 100).toFixed(0)}%</td>
-                <td className="py-sm px-md text-right font-mono font-semibold">{(vZ * pZ).toFixed(4)}</td>
-              </tr>
-              <tr className="border-b border-border-light">
-                <td className="py-sm px-md">{t('config.giro')}</td>
-                <td className="py-sm px-md text-right font-mono">{vG.toFixed(4)}</td>
-                <td className="py-sm px-md text-right font-mono">{(pG * 100).toFixed(0)}%</td>
-                <td className="py-sm px-md text-right font-mono font-semibold">{(vG * pG).toFixed(4)}</td>
-              </tr>
-              <tr className="border-b border-border">
-                <td className="py-sm px-md">{t('config.type')}</td>
-                <td className="py-sm px-md text-right font-mono">{vT.toFixed(4)}</td>
-                <td className="py-sm px-md text-right font-mono">{(pT * 100).toFixed(0)}%</td>
-                <td className="py-sm px-md text-right font-mono font-semibold">{(vT * pT).toFixed(4)}</td>
-              </tr>
+              <CalcRow label={t('config.surface')} v={vS} p={pS} />
+              <CalcRow label={t('config.zone')} v={vZ} p={pZ} />
+              <CalcRow label={t('config.giro')} v={vG} p={pG} />
+              <CalcRow label={t('config.type')} v={vT} p={pT} />
               <tr className="bg-surface">
-                <td className="py-sm px-md font-semibold" colSpan={3}>ITD = Σ(V × P)</td>
-                <td className="py-sm px-md text-right font-mono font-bold text-action-blue">{itd.toFixed(4)}</td>
+                <td className="py-md px-md font-semibold text-dark-gray" colSpan={3}>
+                  ITD = Σ(V × P)
+                </td>
+                <td className="py-md px-md text-right font-mono font-bold text-action-blue text-body">
+                  {itd.toFixed(4)}
+                </td>
               </tr>
             </tbody>
           </table>
@@ -165,19 +168,45 @@ export function DeterminationDetailPage() {
       </div>
 
       {/* Fee Calculation */}
-      <div className="bg-white border border-border rounded-md p-xl">
-        <h3 className="text-body font-semibold text-black m-0 mb-md">{t('detDetail.feeCalculation')}</h3>
-        <div className="grid grid-cols-2 gap-lg">
-          <div className="flex flex-col gap-sm">
-            <InfoItem label={t('detDetail.cuotaBaseLegal')} value={cuotaBaseLegal != null ? `$${cuotaBaseLegal.toLocaleString('es-MX', { minimumFractionDigits: 2 })}` : '—'} />
-            <InfoItem label={t('detDetail.factor')} value={factor.toFixed(4)} />
-            <InfoItem label={t('detDetail.formula')} value={itd < protThreshold ? `${t('detDetail.formulaProtected')}` : `base × (1 + ${factor.toFixed(4)})`} />
+      <div className="bg-white border border-border rounded-lg overflow-hidden">
+        <div className="px-xl py-md border-b border-border-light">
+          <h3 className="text-body font-semibold text-black m-0">{t('detDetail.feeCalculation')}</h3>
+        </div>
+        <div className="p-xl">
+          <div className="grid grid-cols-4 gap-lg">
+            <FeeItem
+              label={t('detDetail.cuotaBaseLegal')}
+              value={cuotaBaseLegal != null ? `$${cuotaBaseLegal.toLocaleString('es-MX', { minimumFractionDigits: 2 })}` : '—'}
+            />
+            <FeeItem label={t('detDetail.factor')} value={factor.toFixed(4)} />
+            <FeeItem
+              label={t('detDetail.formula')}
+              value={itd < protThreshold ? t('detDetail.formulaProtected') : `base × (1 + ${factor.toFixed(4)})`}
+              mono={false}
+            />
+            <FeeItem
+              label={t('detDetail.cuotaSdui')}
+              value={`$${cuotaSdui.toLocaleString('es-MX', { minimumFractionDigits: 2 })}`}
+              accent
+            />
           </div>
-          <div className="flex flex-col gap-sm">
-            <InfoItem label={t('detDetail.cuotaSdui')} value={`$${cuotaSdui.toLocaleString('es-MX', { minimumFractionDigits: 2 })}`} highlight />
-            <InfoItem label={t('detDetail.cuotaVigente')} value={`$${Number(determ.cuotaVigente).toLocaleString('es-MX', { minimumFractionDigits: 2 })}`} />
-            <InfoItem label={t('detDetail.variation')} value={`${variacion > 0 ? '+' : ''}${variacion.toFixed(2)}%`} />
-            <InfoItem label={t('detDetail.limitApplied')} value={`${(Number(determ.limitePctAplicado) * 100).toFixed(0)}%`} />
+
+          <div className="border-t border-border-light mt-lg pt-lg">
+            <div className="grid grid-cols-3 gap-lg">
+              <FeeItem
+                label={t('detDetail.cuotaVigente')}
+                value={`$${Number(determ.cuotaVigente).toLocaleString('es-MX', { minimumFractionDigits: 2 })}`}
+              />
+              <FeeItem
+                label={t('detDetail.variation')}
+                value={`${variacion > 0 ? '+' : ''}${variacion.toFixed(2)}%`}
+                color={variacion > 0 ? '#A82C2C' : '#2C7A3E'}
+              />
+              <FeeItem
+                label={t('detDetail.limitApplied')}
+                value={`${(Number(determ.limitePctAplicado) * 100).toFixed(0)}%`}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -185,11 +214,38 @@ export function DeterminationDetailPage() {
   );
 }
 
-function InfoItem({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
+function CalcRow({ label, v, p }: { label: string; v: number; p: number }) {
+  return (
+    <tr className="border-b border-border-light">
+      <td className="py-sm px-md text-dark-gray">{label}</td>
+      <td className="py-sm px-md text-right font-mono">{v.toFixed(4)}</td>
+      <td className="py-sm px-md text-right font-mono">{(p * 100).toFixed(0)}%</td>
+      <td className="py-sm px-md text-right font-mono font-semibold text-institutional-blue">{(v * p).toFixed(4)}</td>
+    </tr>
+  );
+}
+
+function InfoItem({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <span className="text-caption text-medium-gray">{label}</span>
-      <p className={`text-body m-0 mt-[2px] font-mono ${highlight ? 'font-bold text-action-blue text-heading' : 'text-dark-gray'}`}>
+      <p className="text-body m-0 mt-[2px] text-dark-gray">{value}</p>
+    </div>
+  );
+}
+
+function FeeItem({
+  label, value, accent, color, mono = true,
+}: {
+  label: string; value: string; accent?: boolean; color?: string; mono?: boolean;
+}) {
+  return (
+    <div>
+      <span className="text-caption text-medium-gray">{label}</span>
+      <p
+        className={`text-body m-0 mt-[2px] ${mono ? 'font-mono' : ''} ${accent ? 'font-bold text-action-blue text-[18px]' : 'text-dark-gray'}`}
+        style={color ? { color } : undefined}
+      >
         {value}
       </p>
     </div>

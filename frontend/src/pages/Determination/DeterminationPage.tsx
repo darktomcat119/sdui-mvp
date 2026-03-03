@@ -27,7 +27,6 @@ export function DeterminationPage() {
   const [estatusFilter, setEstatusFilter] = useState('');
   const [search, setSearch] = useState('');
 
-  // Summary cards
   const [summary, setSummary] = useState<{
     protegido: number;
     moderado: number;
@@ -154,7 +153,7 @@ export function DeterminationPage() {
       render: (d: Determination) => {
         const pct = Number(d.variacionPct) * 100;
         return (
-          <span className={`font-mono text-small ${pct > 0 ? 'text-red-600' : 'text-green-700'}`}>
+          <span className={`font-mono text-small ${pct > 0 ? 'text-[#A82C2C]' : 'text-[#2C7A3E]'}`}>
             {pct > 0 ? '+' : ''}{pct.toFixed(2)}%
           </span>
         );
@@ -170,31 +169,31 @@ export function DeterminationPage() {
   ];
 
   return (
-    <div className="flex flex-col gap-[20px]">
+    <div className="flex flex-col gap-lg">
       {/* Summary Cards */}
       {summary && summary.total > 0 && (
         <div className="grid grid-cols-4 gap-md">
           <SummaryCard
             label={t('determination.total')}
             value={summary.total}
-            color="text-black"
+            accent="#1E3A5F"
           />
           <SummaryCard
             label={t('determination.protected')}
             value={summary.protegido}
-            color="text-green-700"
+            accent="#2C7A3E"
             pct={summary.total > 0 ? (summary.protegido / summary.total * 100).toFixed(0) : '0'}
           />
           <SummaryCard
             label={t('determination.moderate')}
             value={summary.moderado}
-            color="text-amber-600"
+            accent="#C47F17"
             pct={summary.total > 0 ? (summary.moderado / summary.total * 100).toFixed(0) : '0'}
           />
           <SummaryCard
             label={t('determination.proportional')}
             value={summary.proporcional}
-            color="text-red-600"
+            accent="#A82C2C"
             pct={summary.total > 0 ? (summary.proporcional / summary.total * 100).toFixed(0) : '0'}
           />
         </div>
@@ -202,12 +201,12 @@ export function DeterminationPage() {
 
       {/* Actions */}
       <div className="flex justify-between items-center">
-        <span className="text-small text-medium-gray">
+        <span className="font-mono text-small text-medium-gray">
           {total} {t('determination.results')}
         </span>
         {isMunicipalAdmin && (
           <Button variant="primary" onClick={handleExecute} disabled={executing}>
-            <Icon name="play" size={18} />
+            <Icon name="play" size={16} />
             {executing ? t('determination.executing') : t('determination.execute')}
           </Button>
         )}
@@ -223,7 +222,7 @@ export function DeterminationPage() {
           />
         </div>
         <select
-          className="border border-border rounded-sm px-md py-sm text-small bg-white h-[38px]"
+          className="border border-border rounded-sm px-md py-sm text-small bg-white h-[38px] font-primary cursor-pointer focus:outline-none focus:border-action-blue"
           value={clasificacionFilter}
           onChange={(e) => setClasificacionFilter(e.target.value)}
         >
@@ -233,7 +232,7 @@ export function DeterminationPage() {
           <option value="proporcional">Proporcional</option>
         </select>
         <select
-          className="border border-border rounded-sm px-md py-sm text-small bg-white h-[38px]"
+          className="border border-border rounded-sm px-md py-sm text-small bg-white h-[38px] font-primary cursor-pointer focus:outline-none focus:border-action-blue"
           value={estatusFilter}
           onChange={(e) => setEstatusFilter(e.target.value)}
         >
@@ -246,10 +245,15 @@ export function DeterminationPage() {
 
       {/* Table */}
       {loading ? (
-        <div className="text-medium-gray text-body p-xl text-center">{t('common.loading')}</div>
+        <div className="flex items-center justify-center py-3xl">
+          <Icon name="spinner" size={24} color="var(--color-medium-gray)" />
+        </div>
       ) : determinations.length === 0 ? (
-        <div className="text-center p-3xl text-medium-gray text-body">
-          {t('determination.noResults')}
+        <div className="bg-white border border-border rounded-lg p-3xl text-center">
+          <div className="w-12 h-12 rounded-lg bg-surface mx-auto mb-md flex items-center justify-center">
+            <Icon name="play" size={24} color="var(--color-medium-gray)" />
+          </div>
+          <p className="text-body text-dark-gray mb-xs">{t('determination.noResults')}</p>
         </div>
       ) : (
         <>
@@ -285,20 +289,19 @@ export function DeterminationPage() {
 }
 
 function SummaryCard({
-  label,
-  value,
-  color,
-  pct,
+  label, value, accent, pct,
 }: {
-  label: string;
-  value: number;
-  color: string;
-  pct?: string;
+  label: string; value: number; accent: string; pct?: string;
 }) {
   return (
-    <div className="bg-white rounded-lg border border-border p-lg">
-      <span className="text-small text-medium-gray">{label}</span>
-      <p className={`text-heading font-bold ${color} mt-xs mb-0`}>{value}</p>
+    <div
+      className="bg-white rounded-lg border border-border p-lg border-l-[3px]"
+      style={{ borderLeftColor: accent }}
+    >
+      <span className="text-caption text-medium-gray uppercase tracking-[0.3px]">{label}</span>
+      <p className="text-[24px] font-bold font-mono mt-xs mb-0" style={{ color: accent }}>
+        {value}
+      </p>
       {pct && <span className="text-caption text-light-gray">{pct}%</span>}
     </div>
   );

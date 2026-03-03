@@ -20,16 +20,16 @@ export function ConfigurationPage() {
   };
 
   return (
-    <div className="flex flex-col gap-[20px]">
-      <div className="flex border-b border-border">
+    <div className="flex flex-col gap-lg">
+      <div className="flex gap-xs bg-white border border-border rounded-lg p-xs">
         {TABS.map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`py-sm px-lg text-small font-medium border-b-2 transition-all duration-150 cursor-pointer bg-transparent ${
+            className={`py-sm px-lg text-small font-medium rounded-md transition-all duration-150 cursor-pointer border-none ${
               activeTab === tab
-                ? 'border-action-blue text-action-blue'
-                : 'border-transparent text-medium-gray hover:text-dark-gray'
+                ? 'bg-action-blue text-white'
+                : 'bg-transparent text-medium-gray hover:bg-surface hover:text-dark-gray'
             }`}
           >
             {tabLabels[tab]}

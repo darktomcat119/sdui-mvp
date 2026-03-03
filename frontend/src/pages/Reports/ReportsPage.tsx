@@ -46,13 +46,20 @@ export function ReportsPage() {
   };
 
   if (loading) {
-    return <div className="text-medium-gray text-body p-xl text-center">{t('common.loading')}</div>;
+    return (
+      <div className="flex items-center justify-center py-3xl">
+        <Icon name="spinner" size={24} color="var(--color-medium-gray)" />
+      </div>
+    );
   }
 
   if (!summary || summary.totalDeterminaciones === 0) {
     return (
-      <div className="text-center p-3xl text-medium-gray text-body">
-        {t('reports.noData')}
+      <div className="bg-white border border-border rounded-lg p-3xl text-center">
+        <div className="w-12 h-12 rounded-lg bg-surface mx-auto mb-md flex items-center justify-center">
+          <Icon name="download" size={24} color="var(--color-medium-gray)" />
+        </div>
+        <p className="text-body text-dark-gray mb-xs">{t('reports.noData')}</p>
       </div>
     );
   }
@@ -61,135 +68,152 @@ export function ReportsPage() {
   const totalD = summary.totalDeterminaciones;
 
   return (
-    <div className="flex flex-col gap-[20px]">
+    <div className="flex flex-col gap-lg">
       {/* Export Actions */}
-      <div className="flex justify-end gap-sm">
+      <div className="flex justify-end">
         <Button variant="secondary" onClick={handleExportCsv} disabled={exporting}>
-          <Icon name="download" size={18} />
+          <Icon name="download" size={16} />
           {exporting ? t('reports.exporting') : t('reports.exportCsv')}
         </Button>
       </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-5 gap-md">
-        <KpiCard
-          label={t('reports.totalTaxpayers')}
-          value={summary.totalContribuyentes.toString()}
-        />
-        <KpiCard
-          label={t('reports.totalDeterminations')}
-          value={totalD.toString()}
-        />
-        <KpiCard
-          label={t('reports.avgImpact')}
-          value={`${(summary.promedioImpacto * 100).toFixed(2)}%`}
-        />
-        <KpiCard
-          label={t('reports.maxImpact')}
-          value={`${(summary.impactoMaximo * 100).toFixed(2)}%`}
-        />
-        <KpiCard
-          label={t('reports.limit')}
-          value={summary.limiteAplicado ? `${(summary.limiteAplicado * 100).toFixed(0)}%` : '—'}
-        />
+        <KpiCard label={t('reports.totalTaxpayers')} value={summary.totalContribuyentes.toString()} accent="#0066CC" />
+        <KpiCard label={t('reports.totalDeterminations')} value={totalD.toString()} accent="#2C7A3E" />
+        <KpiCard label={t('reports.avgImpact')} value={`${(summary.promedioImpacto * 100).toFixed(2)}%`} accent="#C47F17" />
+        <KpiCard label={t('reports.maxImpact')} value={`${(summary.impactoMaximo * 100).toFixed(2)}%`} accent="#A82C2C" />
+        <KpiCard label={t('reports.limit')} value={summary.limiteAplicado ? `${(summary.limiteAplicado * 100).toFixed(0)}%` : '—'} accent="#1E3A5F" />
       </div>
 
       {/* Classification Distribution */}
-      <div className="bg-white rounded-lg border border-border p-xl">
-        <h3 className="text-subtitle font-semibold text-black m-0 mb-lg">
-          {t('reports.classificationDistribution')}
-        </h3>
-        <div className="grid grid-cols-3 gap-lg">
-          <ClassificationBar
-            label={t('determination.protected')}
-            count={byClasificacion.protegido}
-            total={totalD}
-            color="bg-green-500"
-          />
-          <ClassificationBar
-            label={t('determination.moderate')}
-            count={byClasificacion.moderado}
-            total={totalD}
-            color="bg-amber-500"
-          />
-          <ClassificationBar
-            label={t('determination.proportional')}
-            count={byClasificacion.proporcional}
-            total={totalD}
-            color="bg-red-500"
-          />
+      <div className="bg-white rounded-lg border border-border overflow-hidden">
+        <div className="px-xl py-md border-b border-border-light">
+          <h3 className="text-body font-semibold text-black m-0">
+            {t('reports.classificationDistribution')}
+          </h3>
+        </div>
+        <div className="p-xl">
+          {/* Stacked bar */}
+          <div className="flex rounded-md overflow-hidden h-[24px] mb-lg">
+            {byClasificacion.protegido > 0 && (
+              <div
+                className="bg-[#2C7A3E] flex items-center justify-center text-white text-[11px] font-medium"
+                style={{ width: `${(byClasificacion.protegido / totalD) * 100}%` }}
+              >
+                {byClasificacion.protegido}
+              </div>
+            )}
+            {byClasificacion.moderado > 0 && (
+              <div
+                className="bg-[#C47F17] flex items-center justify-center text-white text-[11px] font-medium"
+                style={{ width: `${(byClasificacion.moderado / totalD) * 100}%` }}
+              >
+                {byClasificacion.moderado}
+              </div>
+            )}
+            {byClasificacion.proporcional > 0 && (
+              <div
+                className="bg-[#A82C2C] flex items-center justify-center text-white text-[11px] font-medium"
+                style={{ width: `${(byClasificacion.proporcional / totalD) * 100}%` }}
+              >
+                {byClasificacion.proporcional}
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-3 gap-lg">
+            <ClassItem label={t('determination.protected')} count={byClasificacion.protegido} total={totalD} color="#2C7A3E" bg="#EBF5ED" />
+            <ClassItem label={t('determination.moderate')} count={byClasificacion.moderado} total={totalD} color="#C47F17" bg="#FDF5E6" />
+            <ClassItem label={t('determination.proportional')} count={byClasificacion.proporcional} total={totalD} color="#A82C2C" bg="#F9EBEB" />
+          </div>
         </div>
       </div>
 
-      {/* Distribution by Zone */}
-      {summary.distribucionZonas.length > 0 && (
-        <div className="bg-white rounded-lg border border-border p-xl">
-          <h3 className="text-subtitle font-semibold text-black m-0 mb-lg">
-            {t('reports.zoneDistribution')}
-          </h3>
-          <div className="flex flex-col gap-sm">
-            {summary.distribucionZonas.map((z) => (
-              <div key={z.zona} className="flex items-center justify-between py-xs border-b border-border-light last:border-0">
-                <span className="text-small text-dark-gray">{z.zona}</span>
-                <span className="font-mono text-small font-semibold">{z.count}</span>
+      {/* Distribution sections side by side */}
+      <div className="grid grid-cols-2 gap-lg">
+        {/* Zone Distribution */}
+        {summary.distribucionZonas.length > 0 && (
+          <div className="bg-white rounded-lg border border-border overflow-hidden">
+            <div className="px-xl py-md border-b border-border-light">
+              <h3 className="text-body font-semibold text-black m-0">{t('reports.zoneDistribution')}</h3>
+            </div>
+            <div className="p-xl">
+              <div className="flex flex-col">
+                {summary.distribucionZonas.map((z) => {
+                  const maxCount = Math.max(...summary.distribucionZonas.map((x) => x.count));
+                  const barPct = maxCount > 0 ? (z.count / maxCount) * 100 : 0;
+                  return (
+                    <div key={z.zona} className="flex items-center gap-md py-sm border-b border-border-light last:border-0">
+                      <span className="text-small text-dark-gray w-[120px] shrink-0 truncate">{z.zona}</span>
+                      <div className="flex-1 h-[6px] bg-surface rounded-full overflow-hidden">
+                        <div className="h-full bg-action-blue rounded-full" style={{ width: `${barPct}%` }} />
+                      </div>
+                      <span className="font-mono text-small font-semibold text-institutional-blue w-[30px] text-right">{z.count}</span>
+                    </div>
+                  );
+                })}
               </div>
-            ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Distribution by Giro */}
-      {summary.distribucionGiros.length > 0 && (
-        <div className="bg-white rounded-lg border border-border p-xl">
-          <h3 className="text-subtitle font-semibold text-black m-0 mb-lg">
-            {t('reports.giroDistribution')}
-          </h3>
-          <div className="flex flex-col gap-sm">
-            {summary.distribucionGiros.map((g) => (
-              <div key={g.giro} className="flex items-center justify-between py-xs border-b border-border-light last:border-0">
-                <span className="text-small text-dark-gray">{g.giro}</span>
-                <span className="font-mono text-small font-semibold">{g.count}</span>
+        {/* Giro Distribution */}
+        {summary.distribucionGiros.length > 0 && (
+          <div className="bg-white rounded-lg border border-border overflow-hidden">
+            <div className="px-xl py-md border-b border-border-light">
+              <h3 className="text-body font-semibold text-black m-0">{t('reports.giroDistribution')}</h3>
+            </div>
+            <div className="p-xl">
+              <div className="flex flex-col">
+                {summary.distribucionGiros.map((g) => {
+                  const maxCount = Math.max(...summary.distribucionGiros.map((x) => x.count));
+                  const barPct = maxCount > 0 ? (g.count / maxCount) * 100 : 0;
+                  return (
+                    <div key={g.giro} className="flex items-center gap-md py-sm border-b border-border-light last:border-0">
+                      <span className="text-small text-dark-gray w-[160px] shrink-0 truncate">{g.giro}</span>
+                      <div className="flex-1 h-[6px] bg-surface rounded-full overflow-hidden">
+                        <div className="h-full bg-[#C47F17] rounded-full" style={{ width: `${barPct}%` }} />
+                      </div>
+                      <span className="font-mono text-small font-semibold text-[#C47F17] w-[30px] text-right">{g.count}</span>
+                    </div>
+                  );
+                })}
               </div>
-            ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
 
-function KpiCard({ label, value }: { label: string; value: string }) {
+function KpiCard({ label, value, accent }: { label: string; value: string; accent: string }) {
   return (
-    <div className="bg-white rounded-lg border border-border p-lg text-center">
-      <span className="text-small text-medium-gray">{label}</span>
-      <p className="text-heading font-bold text-black mt-xs mb-0">{value}</p>
+    <div
+      className="bg-white rounded-lg border border-border p-lg border-l-[3px]"
+      style={{ borderLeftColor: accent }}
+    >
+      <span className="text-caption text-medium-gray uppercase tracking-[0.3px]">{label}</span>
+      <p className="text-[20px] font-bold font-mono mt-xs mb-0" style={{ color: accent }}>
+        {value}
+      </p>
     </div>
   );
 }
 
-function ClassificationBar({
-  label,
-  count,
-  total,
-  color,
-}: {
-  label: string;
-  count: number;
-  total: number;
-  color: string;
+function ClassItem({ label, count, total, color, bg }: {
+  label: string; count: number; total: number; color: string; bg: string;
 }) {
-  const pct = total > 0 ? (count / total) * 100 : 0;
+  const pct = total > 0 ? (count / total * 100) : 0;
   return (
-    <div>
-      <div className="flex justify-between mb-xs">
-        <span className="text-small font-medium text-dark-gray">{label}</span>
-        <span className="text-small text-medium-gray">{count} ({pct.toFixed(0)}%)</span>
+    <div className="flex items-center gap-md p-md rounded-md" style={{ backgroundColor: bg }}>
+      <div className="text-[20px] font-bold font-mono leading-none" style={{ color }}>
+        {count}
       </div>
-      <div className="w-full h-2 bg-surface rounded-full overflow-hidden">
-        <div
-          className={`h-full ${color} rounded-full transition-all duration-300`}
-          style={{ width: `${pct}%` }}
-        />
+      <div>
+        <span className="text-small font-medium" style={{ color }}>{label}</span>
+        <span className="block text-caption text-medium-gray">{pct.toFixed(0)}%</span>
       </div>
     </div>
   );
