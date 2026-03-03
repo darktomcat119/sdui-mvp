@@ -44,17 +44,22 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new UnauthorizedException(
-        'Nombre de usuario o contraseña incorrectos. Después de 3 intentos fallidos, la cuenta será bloqueada temporalmente.',
-      );
+      throw new UnauthorizedException({
+        message: 'INVALID_CREDENTIALS',
+        attemptsRemaining: config.maxFailedAttempts,
+      });
     }
 
     // Check if account is locked
     if (user.status === 'locked') {
       if (user.lockedUntil && user.lockedUntil > new Date()) {
-        throw new ForbiddenException(
-          'Esta cuenta ha sido bloqueada por seguridad. Contacte al administrador del sistema.',
+        const minutesLeft = Math.ceil(
+          (user.lockedUntil.getTime() - Date.now()) / 60000,
         );
+        throw new ForbiddenException({
+          message: 'ACCOUNT_LOCKED',
+          minutesLeft,
+        });
       }
       // Lock expired, unlock the account
       user.status = 'active';
@@ -64,9 +69,7 @@ export class AuthService {
     }
 
     if (user.status === 'inactive') {
-      throw new ForbiddenException(
-        'Esta cuenta ha sido desactivada. Contacte al administrador del sistema.',
-      );
+      throw new ForbiddenException({ message: 'ACCOUNT_INACTIVE' });
     }
 
     // Verify password
@@ -94,20 +97,24 @@ export class AuthService {
           metadata: { failedAttempts: user.failedLoginAttempts },
         });
 
-        throw new ForbiddenException(
-          'Esta cuenta ha sido bloqueada por seguridad. Contacte al administrador del sistema.',
-        );
+        throw new ForbiddenException({
+          message: 'ACCOUNT_LOCKED',
+          minutesLeft: config.lockoutDurationMinutes,
+        });
       }
 
+      const attemptsRemaining =
+        config.maxFailedAttempts - user.failedLoginAttempts;
       await this.userRepo.save(user);
-      throw new UnauthorizedException(
-        'Nombre de usuario o contraseña incorrectos. Después de 3 intentos fallidos, la cuenta será bloqueada temporalmente.',
-      );
+      throw new UnauthorizedException({
+        message: 'INVALID_CREDENTIALS',
+        attemptsRemaining,
+      });
     }
 
     // Check municipality is active (for non-system admins)
     if (user.municipality && user.municipality.status !== 'active') {
-      throw new ForbiddenException('The municipality is currently inactive');
+      throw new ForbiddenException({ message: 'MUNICIPALITY_INACTIVE' });
     }
 
     // Successful login - reset failed attempts

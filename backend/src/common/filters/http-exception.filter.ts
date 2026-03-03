@@ -20,6 +20,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     let message = 'Internal server error';
     let errors: any[] | undefined;
 
+    let extra: Record<string, any> = {};
+
     if (exception instanceof HttpException) {
       status = exception.getStatus();
       const exResponse = exception.getResponse();
@@ -32,6 +34,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         if (errors) {
           message = 'Validation failed';
         }
+        // Forward additional fields (e.g. attemptsRemaining, minutesLeft)
+        const { message: _m, statusCode: _s, error: _e, ...rest } = resp;
+        extra = rest;
       }
     } else {
       this.logger.error('Unhandled exception', exception);
@@ -41,6 +46,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       statusCode: status,
       message,
       ...(errors && { errors }),
+      ...extra,
       timestamp: new Date().toISOString(),
     });
   }

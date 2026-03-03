@@ -19,6 +19,7 @@ export function LoginPage() {
   const [password, setPassword] = useState('');
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
   const [loading, setLoading] = useState(false);
+  const [loginError, setLoginError] = useState<{ title: string; message: string } | null>(null);
 
   useEffect(() => {
     if (sessionStorage.getItem('sessionExpired')) {
@@ -47,32 +48,46 @@ export function LoginPage() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setLoginError(null);
     if (!validate()) return;
     setLoading(true);
     try {
       await login({ email, password });
       navigate('/dashboard');
     } catch (err: any) {
-      const status = err.response?.status;
-      const serverMessage = err.response?.data?.message;
+      const data = err.response?.data;
+      const code: string = data?.message || '';
+      const attemptsRemaining: number | undefined = data?.attemptsRemaining;
+      const minutesLeft: number | undefined = data?.minutesLeft;
 
-      if (status === 401) {
-        addToast({
-          variant: 'error',
+      if (code === 'INVALID_CREDENTIALS') {
+        setLoginError({
           title: t('login.error.invalidCredentials'),
-          message: serverMessage || t('login.error.invalidCredentialsMsg'),
+          message: attemptsRemaining !== undefined
+            ? t('login.error.invalidCredentialsMsgAttempts', { count: attemptsRemaining })
+            : t('login.error.invalidCredentialsMsg'),
         });
-      } else if (status === 423 || serverMessage?.includes('bloqueada')) {
-        addToast({
-          variant: 'warning',
+      } else if (code === 'ACCOUNT_LOCKED') {
+        setLoginError({
           title: t('login.error.accountLocked'),
-          message: serverMessage || t('login.error.accountLockedMsg'),
+          message: minutesLeft !== undefined
+            ? t('login.error.accountLockedMsgMinutes', { count: minutesLeft })
+            : t('login.error.accountLockedMsg'),
+        });
+      } else if (code === 'ACCOUNT_INACTIVE') {
+        setLoginError({
+          title: t('login.error.accountInactive'),
+          message: t('login.error.accountInactiveMsg'),
+        });
+      } else if (code === 'MUNICIPALITY_INACTIVE') {
+        setLoginError({
+          title: t('login.error.accessDenied'),
+          message: t('login.error.municipalityInactiveMsg'),
         });
       } else {
-        addToast({
-          variant: 'error',
+        setLoginError({
           title: t('login.error.connectionError'),
-          message: serverMessage || t('login.error.connectionErrorMsg'),
+          message: t('login.error.connectionErrorMsg'),
         });
       }
     } finally {
@@ -100,6 +115,7 @@ export function LoginPage() {
             value={email}
             onChange={(e) => {
               setEmail(e.target.value);
+              if (loginError) setLoginError(null);
               if (fieldErrors.email) setFieldErrors((prev) => ({ ...prev, email: undefined }));
             }}
             error={fieldErrors.email}
@@ -113,11 +129,24 @@ export function LoginPage() {
             value={password}
             onChange={(e) => {
               setPassword(e.target.value);
+              if (loginError) setLoginError(null);
               if (fieldErrors.password) setFieldErrors((prev) => ({ ...prev, password: undefined }));
             }}
             error={fieldErrors.password}
             required
           />
+
+          {loginError && (
+            <div className="flex gap-sm p-md rounded-md bg-[#FEF2F2] border border-[#FECACA]">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width={18} height={18} fill="#DC2626" className="shrink-0 mt-[1px]" aria-hidden="true">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+              </svg>
+              <div className="flex flex-col gap-[2px]">
+                <span className="text-small font-semibold text-[#991B1B]">{loginError.title}</span>
+                <span className="text-caption text-[#B91C1C] leading-[1.4]">{loginError.message}</span>
+              </div>
+            </div>
+          )}
 
           <Button
             type="submit"
